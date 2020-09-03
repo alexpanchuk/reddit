@@ -16,30 +16,17 @@ import { Wrapper } from "../components/Wrapper";
 
 type FormInput = {
   username: string;
-  password: string;
-  confirm: string;
+  password1: string;
+  password2: string;
 };
 
 const Register: NextPage = () => {
   const { handleSubmit, errors, register, formState, watch } = useForm<
     FormInput
   >({
-    defaultValues: { username: "", password: "" },
+    defaultValues: { username: "", password1: "", password2: "" },
+    mode: "onBlur",
   });
-
-  const password = watch("password");
-
-  function validateUsername(value: string) {
-    return value.trim().length < 4 ? "should be at least 4 characters" : true;
-  }
-
-  function validatePassword(value: string) {
-    return value.trim().length < 8 ? "should be at least 8 characters" : true;
-  }
-
-  function validateConfirm(value: string) {
-    return value === password ? true : "passwords does not match";
-  }
 
   async function onSubmit(values: FormInput) {
     const delay = (ms: number) =>
@@ -48,9 +35,9 @@ const Register: NextPage = () => {
       });
 
     await delay(2000);
-    console.log(values.username, values.password);
+    console.log(values.username, values.password1);
   }
-
+  console.log("render");
   return (
     <Wrapper variant="small">
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -61,8 +48,12 @@ const Register: NextPage = () => {
             name="username"
             placeholder="Username"
             ref={register({
-              validate: validateUsername,
               required: "required",
+              minLength: {
+                value: 4,
+                message: "should be at leats 4 characters",
+              },
+              // maxLength: { value: 2, message: "error message" }
             })}
           />
           <FormErrorMessage>
@@ -72,40 +63,44 @@ const Register: NextPage = () => {
         {/* /Usename */}
 
         {/* Password */}
-        <FormControl isInvalid={Boolean(errors.password)} mt={3}>
-          <FormLabel htmlFor="password">Password</FormLabel>
+        <FormControl isInvalid={Boolean(errors.password1)} mt={3}>
+          <FormLabel htmlFor="password1">Password</FormLabel>
           <Input
-            name="password"
+            name="password1"
             placeholder="Password"
             type="password"
             ref={register({
-              validate: validatePassword,
               required: "required",
+              minLength: {
+                value: 8,
+                message: "should be at leats 8 characters",
+              },
             })}
           />
           <FormErrorMessage>
-            {errors.password && errors.password.message}
+            {errors.password1 && errors.password1.message}
           </FormErrorMessage>
         </FormControl>
         {/* /Password */}
 
         {/* Confirm */}
-        <FormControl isInvalid={Boolean(errors.confirm)} mt={3}>
-          <FormLabel htmlFor="confirm">Confirm</FormLabel>
+        <FormControl isInvalid={Boolean(errors.password2)} mt={3}>
+          <FormLabel htmlFor="password2">Confirm</FormLabel>
           <Input
-            name="confirm"
+            name="password2"
             placeholder="Confirm password"
             type="password"
             ref={register({
-              validate: validateConfirm,
               required: "required",
+              validate: (value) =>
+                value === watch("password1") || "passwords does not match",
             })}
           />
           <FormErrorMessage>
-            {errors.confirm && errors.confirm.message}
+            {errors.password2 && errors.password2.message}
           </FormErrorMessage>
         </FormControl>
-        {/* /Password */}
+        {/* /Confirm */}
         <Button
           mt={4}
           variantColor="teal"
