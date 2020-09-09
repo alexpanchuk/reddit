@@ -26,7 +26,8 @@ const Register: NextPage = () => {
     FormInput
   >({
     defaultValues: { username: "", password1: "", password2: "" },
-    mode: "onBlur",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
   });
 
   async function onSubmit(values: FormInput) {
