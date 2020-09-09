@@ -8,6 +8,7 @@ import {
   Button,
 } from "@chakra-ui/core";
 import { Wrapper } from "../components/Wrapper";
+import { delay } from "../utils/delay";
 
 /**
  * @todo
@@ -29,15 +30,10 @@ const Register: NextPage = () => {
   });
 
   async function onSubmit(values: FormInput) {
-    const delay = (ms: number) =>
-      new Promise((res, rej) => {
-        setTimeout(res, ms);
-      });
-
     await delay(2000);
     console.log(values.username, values.password1);
   }
-  console.log("render");
+
   return (
     <Wrapper variant="small">
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -53,7 +49,6 @@ const Register: NextPage = () => {
                 value: 4,
                 message: "should be at leats 4 characters",
               },
-              // maxLength: { value: 2, message: "error message" }
             })}
           />
           <FormErrorMessage>
