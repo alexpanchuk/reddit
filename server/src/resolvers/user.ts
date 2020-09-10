@@ -104,7 +104,7 @@ export class UserResolver {
     const user = em.create(User, { username, password: hashedPassword });
     await em.persistAndFlush(user);
 
-    req.session!.userId = user.id;
+    req.session.userId = user.id;
 
     return { user };
   }

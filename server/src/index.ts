@@ -10,6 +10,7 @@ import { HelloResolver, PostResolver, UserResolver } from "./resolvers";
 import redis from "redis";
 import session from "express-session";
 import connectRedis from "connect-redis";
+import cors from "cors";
 
 async function main() {
   const app = express();
@@ -17,6 +18,14 @@ async function main() {
   // Setting up orm
   const orm = await MikroORM.init(mikroConfig);
   await orm.getMigrator().up();
+
+  // CORS
+  app.use(
+    cors({
+      origin: "http://localhost:3000",
+      credentials: true,
+    })
+  );
 
   // Use sessions with Redis
   const RedisStore = connectRedis(session);
@@ -46,9 +55,12 @@ async function main() {
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false,
     }),
-    context: ({ req, res }): MyContext => ({ em: orm.em, req, res }),
+    context: ({ req, res }) => ({ em: orm.em, req, res } as MyContext),
   });
-  apolloServer.applyMiddleware({ app });
+  apolloServer.applyMiddleware({
+    app,
+    cors: false,
+  });
 
   // Start listening
   app.listen(4000, () => {
