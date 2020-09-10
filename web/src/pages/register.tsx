@@ -8,11 +8,12 @@ import {
   Button,
 } from "@chakra-ui/core";
 import { Wrapper } from "../components/Wrapper";
-import { delay } from "../utils/delay";
+import { useMutation } from "urql";
 
 /**
  * @todo
  * - Make components Form and Input to incapsulate trivial form logic
+ * - Move out Mutation constants to particular folder
  */
 
 type FormInput = {
@@ -30,9 +31,26 @@ const Register: NextPage = () => {
     reValidateMode: "onChange",
   });
 
-  async function onSubmit(values: FormInput) {
-    await delay(2000);
-    console.log(values.username, values.password1);
+  const REGISTER_MUTATION = `
+    mutation Register($username: String!, $password: String!) {
+      register(data: { username: $username, password: $password }) {
+        errors {
+          field
+          message
+        }
+        user {
+          id
+          username
+          createdAt
+          updatedAt
+        }
+      }
+    }
+  `;
+  const [{ fetching }, API_register] = useMutation(REGISTER_MUTATION);
+
+  async function onSubmit({ username, password1: password }: FormInput) {
+    await API_register({ username, password });
   }
 
   return (
