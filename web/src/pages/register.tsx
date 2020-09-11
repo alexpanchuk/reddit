@@ -8,49 +8,54 @@ import {
   Button,
 } from "@chakra-ui/core";
 import { Wrapper } from "../components/Wrapper";
-import { useMutation } from "urql";
+import {
+  useRegisterMutation,
+  RegisterMutationVariables,
+} from "../generated/graphql";
+import { useRouter } from "next/router";
 
 /**
  * @todo
  * - Make components Form and Input to incapsulate trivial form logic
- * - Move out Mutation constants to particular folder
  */
 
 type FormInput = {
   username: string;
-  password1: string;
-  password2: string;
+  password: string;
+  confirm: string;
 };
 
 const Register: NextPage = () => {
-  const { handleSubmit, errors, register, formState, watch } = useForm<
-    FormInput
-  >({
-    defaultValues: { username: "", password1: "", password2: "" },
+  const {
+    handleSubmit,
+    errors,
+    setError,
+    register,
+    formState,
+    watch,
+  } = useForm<FormInput>({
     mode: "onSubmit",
     reValidateMode: "onChange",
   });
 
-  const REGISTER_MUTATION = `
-    mutation Register($username: String!, $password: String!) {
-      register(data: { username: $username, password: $password }) {
-        errors {
-          field
-          message
-        }
-        user {
-          id
-          username
-          createdAt
-          updatedAt
-        }
-      }
-    }
-  `;
-  const [{ fetching }, API_register] = useMutation(REGISTER_MUTATION);
+  const router = useRouter();
+  const [, API_register] = useRegisterMutation();
 
-  async function onSubmit({ username, password1: password }: FormInput) {
-    await API_register({ username, password });
+  async function onSubmit({ username, password }: FormInput) {
+    const response = await API_register({ username, password });
+    const errors = response.data?.register.errors;
+    const user = response.data?.register.user;
+
+    if (errors) {
+      errors.forEach(({ field, message }) =>
+        setError(field as keyof RegisterMutationVariables, {
+          type: "manual",
+          message,
+        })
+      );
+    } else if (user) {
+      router.push("/");
+    }
   }
 
   return (
@@ -77,10 +82,10 @@ const Register: NextPage = () => {
         {/* /Usename */}
 
         {/* Password */}
-        <FormControl isInvalid={Boolean(errors.password1)} mt={3}>
+        <FormControl isInvalid={Boolean(errors.password)} mt={3}>
           <FormLabel htmlFor="password1">Password</FormLabel>
           <Input
-            name="password1"
+            name="password"
             placeholder="Password"
             type="password"
             ref={register({
@@ -92,26 +97,26 @@ const Register: NextPage = () => {
             })}
           />
           <FormErrorMessage>
-            {errors.password1 && errors.password1.message}
+            {errors.password && errors.password.message}
           </FormErrorMessage>
         </FormControl>
         {/* /Password */}
 
         {/* Confirm */}
-        <FormControl isInvalid={Boolean(errors.password2)} mt={3}>
-          <FormLabel htmlFor="password2">Confirm</FormLabel>
+        <FormControl isInvalid={Boolean(errors.confirm)} mt={3}>
+          <FormLabel htmlFor="confirm">Confirm</FormLabel>
           <Input
-            name="password2"
+            name="confirm"
             placeholder="Confirm password"
             type="password"
             ref={register({
               required: "required",
               validate: (value) =>
-                value === watch("password1") || "passwords does not match",
+                value === watch("password") || "passwords does not match",
             })}
           />
           <FormErrorMessage>
-            {errors.password2 && errors.password2.message}
+            {errors.confirm && errors.confirm.message}
           </FormErrorMessage>
         </FormControl>
         {/* /Confirm */}
