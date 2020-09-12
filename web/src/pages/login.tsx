@@ -8,10 +8,7 @@ import {
   Button,
 } from "@chakra-ui/core";
 import { Wrapper } from "../components/Wrapper";
-import {
-  useRegisterMutation,
-  RegisterMutationVariables,
-} from "../generated/graphql";
+import { LoginMutationVariables, useLoginMutation } from "../generated/graphql";
 import { useRouter } from "next/router";
 
 /**
@@ -19,36 +16,25 @@ import { useRouter } from "next/router";
  * - Make components Form and Input to incapsulate trivial form logic
  */
 
-type FormInput = {
-  username: string;
-  password: string;
-  confirm: string;
-};
-
-const Register: NextPage = () => {
-  const {
-    handleSubmit,
-    errors,
-    setError,
-    register,
-    formState,
-    watch,
-  } = useForm<FormInput>({
+const Login: NextPage = () => {
+  const { handleSubmit, errors, setError, register, formState } = useForm<
+    LoginMutationVariables
+  >({
     mode: "onSubmit",
     reValidateMode: "onChange",
   });
 
   const router = useRouter();
-  const [, executeRegister] = useRegisterMutation();
+  const [, executeLogin] = useLoginMutation();
 
-  async function onSubmit({ username, password }: FormInput) {
-    const response = await executeRegister({ username, password });
-    const errors = response.data?.register.errors;
-    const user = response.data?.register.user;
+  async function onSubmit({ username, password }: LoginMutationVariables) {
+    const response = await executeLogin({ username, password });
+    const errors = response.data?.login.errors;
+    const user = response.data?.login.user;
 
     if (errors) {
       errors.forEach(({ field, message }) =>
-        setError(field as keyof RegisterMutationVariables, {
+        setError(field as keyof LoginMutationVariables, {
           type: "manual",
           message,
         })
@@ -102,35 +88,17 @@ const Register: NextPage = () => {
         </FormControl>
         {/* /Password */}
 
-        {/* Confirm */}
-        <FormControl isInvalid={Boolean(errors.confirm)} mt={3}>
-          <FormLabel htmlFor="confirm">Confirm</FormLabel>
-          <Input
-            name="confirm"
-            placeholder="Confirm password"
-            type="password"
-            ref={register({
-              required: "required",
-              validate: (value) =>
-                value === watch("password") || "passwords does not match",
-            })}
-          />
-          <FormErrorMessage>
-            {errors.confirm && errors.confirm.message}
-          </FormErrorMessage>
-        </FormControl>
-        {/* /Confirm */}
         <Button
           mt={4}
           variantColor="teal"
           isLoading={formState.isSubmitting}
           type="submit"
         >
-          Register
+          Login
         </Button>
       </form>
     </Wrapper>
   );
 };
 
-export default Register;
+export default Login;

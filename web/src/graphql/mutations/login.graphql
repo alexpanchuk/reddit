@@ -1,0 +1,14 @@
+mutation Login($username: String!, $password: String!) {
+  login(data: { username: $username, password: $password }) {
+    errors {
+      field
+      message
+    }
+    user {
+      id
+      username
+      createdAt
+      updatedAt
+    }
+  }
+}
