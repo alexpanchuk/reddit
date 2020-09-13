@@ -1,5 +1,5 @@
 import { MyContext } from "./types";
-import { IS_PROD } from "./constants";
+import { IS_PROD, COOKIE_NAME } from "./constants";
 import "reflect-metadata";
 import { ApolloServer } from "apollo-server-express";
 import { MikroORM } from "@mikro-orm/core";
@@ -32,7 +32,7 @@ async function main() {
   const redisClient = redis.createClient();
   app.use(
     session({
-      name: "qid",
+      name: COOKIE_NAME,
       store: new RedisStore({
         client: redisClient,
         disableTouch: true,
