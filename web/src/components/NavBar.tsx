@@ -1,12 +1,13 @@
-import { Box, Link, Flex } from "@chakra-ui/core";
+import { Box, Link, Flex, Button } from "@chakra-ui/core";
 import NextLink from "next/link";
 
 interface Props {
   username?: string;
   isLoading: boolean;
+  logout: () => void;
 }
 
-export const NavBar: React.FC<Props> = ({ username, isLoading }) => {
+export const NavBar: React.FC<Props> = ({ username, isLoading, logout }) => {
   return (
     <Flex bg="tan" p={4}>
       <NextLink href="/">
@@ -17,7 +18,10 @@ export const NavBar: React.FC<Props> = ({ username, isLoading }) => {
         {username ? (
           <>
             {username}
-            <Link ml={4}>Logout</Link>
+            {/* @findout: why onClick={logout} doesn't work */}
+            <Button variant="link" onClick={() => logout()} ml={4}>
+              Logout
+            </Button>
           </>
         ) : !isLoading ? (
           <>

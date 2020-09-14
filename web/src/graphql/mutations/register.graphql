@@ -1,3 +1,5 @@
+# @findout: why no defenition for RegularUser
+
 mutation Register($username: String!, $password: String!) {
   register(data: { username: $username, password: $password }) {
     errors {

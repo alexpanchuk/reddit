@@ -8,10 +8,12 @@ import {
   LoginMutation,
   MeQuery,
   RegisterMutation,
+  LogoutMutation,
 } from "../generated/graphql";
 
 /**
  * @todo: move out cache logic
+ * @todo: write cacheExchange from scratch for better understanding
  */
 
 function betterUpdateQuery<Result, Query>(
@@ -41,11 +43,11 @@ const client = createClient({
               (result, query) => {
                 if (result.login.errors) {
                   return query;
-                } else {
-                  return {
-                    me: result.login.user,
-                  };
                 }
+
+                return {
+                  me: result.login.user,
+                };
               }
             );
           },
@@ -57,12 +59,21 @@ const client = createClient({
               (result, query) => {
                 if (result.register.errors) {
                   return query;
-                } else {
-                  return {
-                    me: result.register.user,
-                  };
                 }
+
+                return {
+                  me: result.register.user,
+                };
               }
+            );
+          },
+          logout: (_result, args, cache, info) => {
+            betterUpdateQuery<LogoutMutation, MeQuery>(
+              cache,
+              { query: MeDocument },
+              _result,
+              // @findout: why not checking error on mutation?
+              () => ({ me: null })
             );
           },
         },
