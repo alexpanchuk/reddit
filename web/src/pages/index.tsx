@@ -1,14 +1,21 @@
-import { NavBar } from "../components/NavBar";
-import { useMeQuery, useLogoutMutation } from "../generated/graphql";
 import { Box } from "@chakra-ui/core";
+import { withUrqlClient } from "next-urql";
+import { NavBar } from "../components/NavBar";
+import {
+  useLogoutMutation,
+  useMeQuery,
+  usePostsQuery,
+} from "../generated/graphql";
+import { createUrqlClient, isServer } from "../utils";
 
 /**
  * @todo Move cheking auth to context
  */
 
 const Index = () => {
-  const [{ data, fetching }] = useMeQuery();
+  const [{ data, fetching }] = useMeQuery({ pause: isServer() });
   const [, logout] = useLogoutMutation();
+  const [{ data: posts }] = usePostsQuery();
 
   return (
     <>
@@ -17,9 +24,15 @@ const Index = () => {
         isLoading={fetching}
         logout={logout}
       />
-      <Box p={4}>Home</Box>
+      <Box p={4}>
+        {!posts ? (
+          <div>loading...</div>
+        ) : (
+          posts.posts.map(({ title, id }) => <div key={id}>{title}</div>)
+        )}
+      </Box>
     </>
   );
 };
 
-export default Index;
+export default withUrqlClient(createUrqlClient, { ssr: true })(Index);

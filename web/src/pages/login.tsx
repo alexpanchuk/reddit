@@ -1,15 +1,17 @@
-import { NextPage } from "next";
-import { useForm } from "react-hook-form";
 import {
+  Button,
+  FormControl,
   FormErrorMessage,
   FormLabel,
-  FormControl,
   Input,
-  Button,
 } from "@chakra-ui/core";
+import { NextPage } from "next";
+import { withUrqlClient } from "next-urql";
+import { useRouter } from "next/router";
+import { useForm } from "react-hook-form";
 import { Wrapper } from "../components/Wrapper";
 import { LoginMutationVariables, useLoginMutation } from "../generated/graphql";
-import { useRouter } from "next/router";
+import { createUrqlClient } from "../utils";
 
 /**
  * @todo
@@ -101,4 +103,4 @@ const Login: NextPage = () => {
   );
 };
 
-export default Login;
+export default withUrqlClient(createUrqlClient)(Login);
