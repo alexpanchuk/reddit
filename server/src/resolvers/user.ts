@@ -1,4 +1,5 @@
 import argon2 from "argon2";
+import { nanoid } from "nanoid";
 import {
   Arg,
   Ctx,
@@ -9,8 +10,8 @@ import {
   Query,
   Resolver,
 } from "type-graphql";
-import { validateRegisterInput } from "../utils/";
-import { COOKIE_NAME } from "./../constants";
+import { sendEmail, validateRegisterInput } from "../utils/";
+import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "./../constants";
 import { User } from "./../entities";
 import { MyContext } from "./../types";
 
@@ -168,9 +169,28 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
-  async forgotPassword() {
-    // @Ctx() { em, res }: MyContext // @Arg("email") email: string,
-    // const user = await em.findOne(User, { email });
+  async forgotPassword(
+    @Ctx() { em, redis }: MyContext, //
+    @Arg("email") email: string
+  ) {
+    const user = await em.findOne(User, { email });
+
+    if (!user) {
+      return false;
+    }
+
+    const token = nanoid();
+    await redis.set(
+      FORGET_PASSWORD_PREFIX + token,
+      user.id,
+      "ex",
+      1000 * 60 * 60 * 24 * 3
+    );
+
+    await sendEmail(
+      email,
+      `<a href="http://localhost:3000/change-password/${token}">Reset password</a>`
+    );
 
     return true;
   }
