@@ -1,35 +1,38 @@
-import { COOKIE_NAME } from "./../constants";
-import { MyContext } from "./../types";
+import argon2 from "argon2";
 import {
-  Resolver,
-  Mutation,
-  InputType,
-  Field,
   Arg,
   Ctx,
+  Field,
+  InputType,
+  Mutation,
   ObjectType,
   Query,
+  Resolver,
 } from "type-graphql";
-import argon2 from "argon2";
+import { validateRegisterInput } from "../utils/";
+import { COOKIE_NAME } from "./../constants";
 import { User } from "./../entities";
+import { MyContext } from "./../types";
 
 /**
- * @todo
- * - create generic type ApiResponse<T>
- * - git rid off this verbose error's handling
+ * @todo create generic type ApiResponse<T>
+ * @todo git rid off this verbose error's handling
  */
 
 @InputType()
-class UsernamePasswordInput {
+export class RegisterInput {
   @Field()
   username!: string;
+
+  @Field()
+  email!: string;
 
   @Field()
   password!: string;
 }
 
 @ObjectType()
-class FieldError {
+export class FieldError {
   @Field()
   field!: string;
 
@@ -60,36 +63,29 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async register(
-    @Arg("data") data: UsernamePasswordInput,
+    @Arg("data") data: RegisterInput,
     @Ctx() { em, req }: MyContext
   ) {
-    const { username, password } = data;
+    const { username, password, email } = data;
+    const errors = validateRegisterInput(data);
 
-    if (username.length < 4) {
-      return {
-        errors: [
-          {
-            field: "username",
-            message: `Username should be at least 4 characters`,
-          },
-        ],
-      };
-    }
-
-    if (password.length < 8) {
-      return {
-        errors: [
-          {
-            field: "password",
-            message: `Password should be at least 8 characters`,
-          },
-        ],
-      };
-    }
+    if (errors) return { errors };
 
     const sameUser = await em.findOne(User, { username });
+    const sameEmail = await em.findOne(User, { email });
 
     if (sameUser) {
+      return {
+        errors: [
+          {
+            field: "email",
+            message: `Email already taken`,
+          },
+        ],
+      };
+    }
+
+    if (sameEmail) {
       return {
         errors: [
           {
@@ -102,9 +98,13 @@ export class UserResolver {
 
     const hashedPassword = await argon2.hash(password);
 
-    const user = em.create(User, { username, password: hashedPassword });
-    await em.persistAndFlush(user);
+    const user = em.create(User, {
+      username,
+      email,
+      password: hashedPassword,
+    });
 
+    await em.persistAndFlush(user);
     req.session.userId = user.id;
 
     return { user };
@@ -112,18 +112,20 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async login(
-    @Arg("data") data: UsernamePasswordInput,
+    @Arg("usernameOrEmail") usernameOrEmail: string,
+    @Arg("password") password: string,
     @Ctx() { em, req }: MyContext
   ) {
-    const { username, password } = data;
-    const user = await em.findOne(User, { username });
+    const user = await em.findOne(User, {
+      [usernameOrEmail.includes("@") ? "username" : "email"]: usernameOrEmail,
+    });
 
     if (!user) {
       return {
         errors: [
           {
             field: "username",
-            message: `User ${username} doesn't exist`,
+            message: `User ${usernameOrEmail} doesn't exist`,
           },
         ],
       };
@@ -162,5 +164,13 @@ export class UserResolver {
         resolve(true);
       });
     });
+  }
+
+  @Mutation(() => Boolean)
+  async forgotPassword() {
+    // @Ctx() { em, res }: MyContext // @Arg("email") email: string,
+    // const user = await em.findOne(User, { email });
+
+    return true;
   }
 }

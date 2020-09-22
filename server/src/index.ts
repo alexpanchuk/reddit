@@ -1,16 +1,16 @@
-import { MyContext } from "./types";
-import { IS_PROD, COOKIE_NAME } from "./constants";
-import "reflect-metadata";
-import { ApolloServer } from "apollo-server-express";
 import { MikroORM } from "@mikro-orm/core";
-import mikroConfig from "./mikro-orm.config";
-import express from "express";
-import { buildSchema } from "type-graphql";
-import { HelloResolver, PostResolver, UserResolver } from "./resolvers";
-import redis from "redis";
-import session from "express-session";
+import { ApolloServer } from "apollo-server-express";
 import connectRedis from "connect-redis";
 import cors from "cors";
+import express from "express";
+import session from "express-session";
+import redis from "redis";
+import "reflect-metadata";
+import { buildSchema } from "type-graphql";
+import { COOKIE_NAME, IS_PROD } from "./constants";
+import mikroConfig from "./mikro-orm.config";
+import { HelloResolver, PostResolver, UserResolver } from "./resolvers";
+import { MyContext } from "./types";
 
 async function main() {
   const app = express();
