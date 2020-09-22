@@ -78,8 +78,8 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: "email",
-            message: `Email already taken`,
+            field: "username",
+            message: `Username already taken`,
           },
         ],
       };
@@ -89,8 +89,8 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: "username",
-            message: `Username already taken`,
+            field: "email",
+            message: `Email already taken`,
           },
         ],
       };
@@ -116,15 +116,16 @@ export class UserResolver {
     @Arg("password") password: string,
     @Ctx() { em, req }: MyContext
   ) {
+    const searchingField = usernameOrEmail.includes("@") ? "email" : "username";
     const user = await em.findOne(User, {
-      [usernameOrEmail.includes("@") ? "username" : "email"]: usernameOrEmail,
+      [searchingField]: usernameOrEmail,
     });
 
     if (!user) {
       return {
         errors: [
           {
-            field: "username",
+            field: "usernameOrEmail",
             message: `User ${usernameOrEmail} doesn't exist`,
           },
         ],
