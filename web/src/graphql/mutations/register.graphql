@@ -1,7 +1,8 @@
 # @findout: why no defenition for RegularUser
+# @findout: why no defenition for RegisterInput
 
-mutation Register($username: String!, $password: String!) {
-  register(data: { username: $username, password: $password }) {
+mutation Register($data: RegisterInput!) {
+  register(data: $data) {
     errors {
       field
       message

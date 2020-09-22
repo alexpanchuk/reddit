@@ -21,9 +21,7 @@ import { createUrqlClient } from "../utils";
  * - Make components Form and Input to incapsulate trivial form logic
  */
 
-type FormInput = {
-  username: string;
-  password: string;
+type FormInput = RegisterMutationVariables["data"] & {
   confirm: string;
 };
 
@@ -43,18 +41,18 @@ const Register: NextPage = () => {
   const router = useRouter();
   const [, executeRegister] = useRegisterMutation();
 
-  async function onSubmit({ username, password }: FormInput) {
-    const response = await executeRegister({ username, password });
+  async function onSubmit({ confirm, ...data }: FormInput) {
+    const response = await executeRegister({ data });
     const errors = response.data?.register.errors;
     const user = response.data?.register.user;
 
     if (errors) {
-      errors.forEach(({ field, message }) =>
-        setError(field as keyof RegisterMutationVariables, {
+      errors.forEach(({ field, message }) => {
+        setError(field as keyof FormInput, {
           type: "manual",
           message,
-        })
-      );
+        });
+      });
     } else if (user) {
       router.push("/");
     }
@@ -73,7 +71,7 @@ const Register: NextPage = () => {
               required: "required",
               minLength: {
                 value: 4,
-                message: "should be at leats 4 characters",
+                message: "should be at least 4 characters",
               },
             })}
           />
@@ -82,6 +80,27 @@ const Register: NextPage = () => {
           </FormErrorMessage>
         </FormControl>
         {/* /Usename */}
+
+        {/* Email */}
+        <FormControl isInvalid={Boolean(errors.email)} mt={3}>
+          <FormLabel htmlFor="email">Email</FormLabel>
+          <Input
+            name="email"
+            placeholder="Email"
+            ref={register({
+              required: "required",
+              minLength: {
+                value: 6,
+                message: "should be at least 6 characters",
+              },
+              validate: (value) => value.includes("@") || "should contains @",
+            })}
+          />
+          <FormErrorMessage>
+            {errors.email && errors.email.message}
+          </FormErrorMessage>
+        </FormControl>
+        {/* /Email */}
 
         {/* Password */}
         <FormControl isInvalid={Boolean(errors.password)} mt={3}>

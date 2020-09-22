@@ -29,8 +29,11 @@ const Login: NextPage = () => {
   const router = useRouter();
   const [, executeLogin] = useLoginMutation();
 
-  async function onSubmit({ username, password }: LoginMutationVariables) {
-    const response = await executeLogin({ username, password });
+  async function onSubmit({
+    usernameOrEmail,
+    password,
+  }: LoginMutationVariables) {
+    const response = await executeLogin({ usernameOrEmail, password });
     const errors = response.data?.login.errors;
     const user = response.data?.login.user;
 
@@ -50,11 +53,11 @@ const Login: NextPage = () => {
     <Wrapper variant="small">
       <form onSubmit={handleSubmit(onSubmit)}>
         {/* Usename */}
-        <FormControl isInvalid={Boolean(errors.username)}>
-          <FormLabel htmlFor="username">Username</FormLabel>
+        <FormControl isInvalid={Boolean(errors.usernameOrEmail)}>
+          <FormLabel htmlFor="usernameOrEmail">Username</FormLabel>
           <Input
-            name="username"
-            placeholder="Username"
+            name="usernameOrEmail"
+            placeholder="Username or Email"
             ref={register({
               required: "required",
               minLength: {
@@ -64,7 +67,7 @@ const Login: NextPage = () => {
             })}
           />
           <FormErrorMessage>
-            {errors.username && errors.username.message}
+            {errors.usernameOrEmail && errors.usernameOrEmail.message}
           </FormErrorMessage>
         </FormControl>
         {/* /Usename */}
