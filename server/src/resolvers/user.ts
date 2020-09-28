@@ -16,8 +16,8 @@ import { User } from "./../entities";
 import { MyContext } from "./../types";
 
 /**
- * @todo create generic type ApiResponse<T>
- * @todo git rid off this verbose error's handling
+ * @todo create generic type ApiResponse<T>. Make not boolean response for forgotPassword
+ * @todo git rid of this verbose error's handling
  */
 
 @InputType()
@@ -184,7 +184,7 @@ export class UserResolver {
       FORGET_PASSWORD_PREFIX + token,
       user.id,
       "ex",
-      1000 * 60 * 60 * 24 * 3
+      1000 * 60 * 60 * 24 * 3 // 3 days
     );
 
     await sendEmail(
@@ -193,5 +193,58 @@ export class UserResolver {
     );
 
     return true;
+  }
+
+  @Mutation(() => UserResponse)
+  async changePassword(
+    @Ctx() { em, redis, req }: MyContext,
+    @Arg("token") token: string,
+    @Arg("password") password: string
+  ): Promise<UserResponse> {
+    if (password.length < 8) {
+      return {
+        errors: [
+          {
+            field: "password",
+            message: `Password should be at least 8 characters`,
+          },
+        ],
+      };
+    }
+
+    const key = FORGET_PASSWORD_PREFIX + token;
+    const userId = await redis.get(key);
+
+    if (!userId) {
+      return {
+        errors: [
+          {
+            field: "token",
+            message: `Token expired`,
+          },
+        ],
+      };
+    }
+
+    const user = await em.findOne(User, { id: parseInt(userId) });
+
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: "token",
+            message: `User no longer exist`,
+          },
+        ],
+      };
+    }
+
+    user.password = await argon2.hash(password);
+    await em.persistAndFlush(user);
+    await redis.del(key);
+
+    req.session.userId = user.id;
+
+    return { user };
   }
 }
