@@ -1,6 +1,6 @@
 import { Box } from "@chakra-ui/core";
 import { withUrqlClient } from "next-urql";
-import { NavBar } from "../components/NavBar";
+import { NavBar } from "../components";
 import {
   useLogoutMutation,
   useMeQuery,

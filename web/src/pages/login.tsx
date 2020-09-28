@@ -1,12 +1,15 @@
 import {
+  Box,
   Button,
   FormControl,
   FormErrorMessage,
   FormLabel,
   Input,
+  Link,
 } from "@chakra-ui/core";
 import { NextPage } from "next";
 import { withUrqlClient } from "next-urql";
+import NextLink from "next/link";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { Wrapper } from "../components/Wrapper";
@@ -16,6 +19,7 @@ import { createUrqlClient } from "../utils";
 /**
  * @todo
  * - Make components Form and Input to incapsulate trivial form logic
+ * - Make Link component = next/link + chakra ui Link
  */
 
 const Login: NextPage = () => {
@@ -81,6 +85,7 @@ const Login: NextPage = () => {
             type="password"
             ref={register({
               required: "required",
+              // @findout: do i need this validation when login
               minLength: {
                 value: 8,
                 message: "should be at leats 8 characters",
@@ -93,6 +98,12 @@ const Login: NextPage = () => {
         </FormControl>
         {/* /Password */}
 
+        <Box color="#005ea5" fontSize={14}>
+          <NextLink href="/forgot-password">
+            <Link>Forgot password?</Link>
+          </NextLink>
+        </Box>
+
         <Button
           mt={4}
           variantColor="teal"
@@ -100,6 +111,10 @@ const Login: NextPage = () => {
           type="submit"
         >
           Login
+        </Button>
+
+        <Button mt={4} ml={2} onClick={() => router.back()}>
+          Back
         </Button>
       </form>
     </Wrapper>

@@ -1,31 +1,28 @@
 import {
+  Box,
   Button,
   FormControl,
   FormErrorMessage,
   FormLabel,
   Input,
+  Link,
 } from "@chakra-ui/core";
+import { ErrorMessage } from "@hookform/error-message";
 import { NextPage } from "next";
 import { withUrqlClient } from "next-urql";
+import NextLink from "next/link";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
-import { Wrapper } from "../components/Wrapper";
-import {
-  RegisterMutationVariables,
-  useRegisterMutation,
-} from "../generated/graphql";
+import { Wrapper } from "../components";
+import { useChangePasswordMutation } from "../generated/graphql";
 import { createUrqlClient } from "../utils";
 
-/**
- * @todo
- * - Make components Form and Input to incapsulate trivial form logic
- */
-
-type FormInput = RegisterMutationVariables["data"] & {
+type FormInput = {
+  password: string;
   confirm: string;
 };
 
-const Register: NextPage = () => {
+const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
   const {
     handleSubmit,
     errors,
@@ -39,12 +36,13 @@ const Register: NextPage = () => {
   });
 
   const router = useRouter();
-  const [, executeRegister] = useRegisterMutation();
+  const [, executeChangePassword] = useChangePasswordMutation();
 
-  async function onSubmit({ confirm, ...data }: FormInput) {
-    const response = await executeRegister({ data });
-    const errors = response.data?.register.errors;
-    const user = response.data?.register.user;
+  async function onSubmit({ password }: FormInput) {
+    const response = await executeChangePassword({ token, password });
+
+    const errors = response.data?.changePassword.errors;
+    const user = response.data?.changePassword.user;
 
     if (errors) {
       errors.forEach(({ field, message }) => {
@@ -61,51 +59,11 @@ const Register: NextPage = () => {
   return (
     <Wrapper variant="small">
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Usename */}
-        <FormControl isInvalid={Boolean(errors.username)}>
-          <FormLabel htmlFor="username">Username</FormLabel>
-          <Input
-            name="username"
-            placeholder="Username"
-            ref={register({
-              required: "required",
-              minLength: {
-                value: 4,
-                message: "should be at least 4 characters",
-              },
-            })}
-          />
-          <FormErrorMessage>
-            {errors.username && errors.username.message}
-          </FormErrorMessage>
-        </FormControl>
-        {/* /Usename */}
-
-        {/* Email */}
-        <FormControl isInvalid={Boolean(errors.email)} mt={3}>
-          <FormLabel htmlFor="email">Email</FormLabel>
-          <Input
-            name="email"
-            placeholder="Email"
-            ref={register({
-              required: "required",
-              minLength: {
-                value: 6,
-                message: "should be at least 6 characters",
-              },
-              validate: (value) => value.includes("@") || "should contains @",
-            })}
-          />
-          <FormErrorMessage>
-            {errors.email && errors.email.message}
-          </FormErrorMessage>
-        </FormControl>
-        {/* /Email */}
-
         {/* Password */}
         <FormControl isInvalid={Boolean(errors.password)} mt={3}>
-          <FormLabel htmlFor="password1">Password</FormLabel>
+          <FormLabel htmlFor="password1">New password</FormLabel>
           <Input
+            id="password1"
             name="password"
             placeholder="Password"
             type="password"
@@ -127,6 +85,7 @@ const Register: NextPage = () => {
         <FormControl isInvalid={Boolean(errors.confirm)} mt={3}>
           <FormLabel htmlFor="confirm">Confirm</FormLabel>
           <Input
+            id="confirm"
             name="confirm"
             placeholder="Confirm password"
             type="password"
@@ -142,17 +101,38 @@ const Register: NextPage = () => {
         </FormControl>
         {/* /Confirm */}
 
+        <ErrorMessage
+          errors={errors}
+          name="token"
+          render={({ message }) => (
+            <>
+              <Box mt={2} color="tomato">
+                {message}
+              </Box>
+              <Box color="#005ea5">
+                <NextLink href="/forgot-password">
+                  <Link>Go forget it again</Link>
+                </NextLink>
+              </Box>
+            </>
+          )}
+        />
+
         <Button
           mt={4}
           variantColor="teal"
           isLoading={formState.isSubmitting}
           type="submit"
         >
-          Register
+          Change
         </Button>
       </form>
     </Wrapper>
   );
 };
 
-export default withUrqlClient(createUrqlClient)(Register);
+ChangePassword.getInitialProps = ({ query: { token } }) => ({
+  token: token as string,
+});
+
+export default withUrqlClient(createUrqlClient)(ChangePassword);

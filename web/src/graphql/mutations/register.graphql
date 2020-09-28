@@ -1,14 +1,9 @@
 # @findout: why no defenition for RegularUser
+# @findout: why no defenition for RegularError
 # @findout: why no defenition for RegisterInput
 
 mutation Register($data: RegisterInput!) {
   register(data: $data) {
-    errors {
-      field
-      message
-    }
-    user {
-      ...RegularUser
-    }
+    ...RegularUserResponse
   }
 }

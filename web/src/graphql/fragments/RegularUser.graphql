@@ -1,3 +1,5 @@
+# @findout: why no defenition for User and other back-end entities
+
 fragment RegularUser on User {
   id
   username
