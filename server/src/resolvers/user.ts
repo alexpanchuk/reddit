@@ -18,6 +18,7 @@ import { MyContext } from "./../types";
 /**
  * @todo create generic type ApiResponse<T>. Make not boolean response for forgotPassword
  * @todo git rid of this verbose error's handling
+ * @todo: register: make orm validate unique fields (username, email)
  */
 
 @InputType()
@@ -53,27 +54,25 @@ class UserResponse {
 @Resolver()
 export class UserResolver {
   @Query(() => User, { nullable: true })
-  async me(@Ctx() { em, req }: MyContext) {
-    if (!req.session!.userId) {
+  me(@Ctx() { req }: MyContext) {
+    if (!req.session.userId) {
       return null;
     }
 
-    const user = await em.findOne(User, { id: req.session!.userId });
-    return user;
+    return User.findOne(req.session.userId);
   }
 
   @Mutation(() => UserResponse)
   async register(
-    @Arg("data") data: RegisterInput,
-    @Ctx() { em, req }: MyContext
+    @Arg("data") data: RegisterInput, //
+    @Ctx() { req }: MyContext
   ) {
     const { username, password, email } = data;
     const errors = validateRegisterInput(data);
 
     if (errors) return { errors };
-
-    const sameUser = await em.findOne(User, { username });
-    const sameEmail = await em.findOne(User, { email });
+    const sameUser = await User.findOne({ where: { username } });
+    const sameEmail = await User.findOne({ where: { email } });
 
     if (sameUser) {
       return {
@@ -99,13 +98,12 @@ export class UserResolver {
 
     const hashedPassword = await argon2.hash(password);
 
-    const user = em.create(User, {
+    const user = await User.create({
       username,
       email,
       password: hashedPassword,
-    });
+    }).save();
 
-    await em.persistAndFlush(user);
     req.session.userId = user.id;
 
     return { user };
@@ -115,11 +113,13 @@ export class UserResolver {
   async login(
     @Arg("usernameOrEmail") usernameOrEmail: string,
     @Arg("password") password: string,
-    @Ctx() { em, req }: MyContext
+    @Ctx() { req }: MyContext
   ) {
     const searchingField = usernameOrEmail.includes("@") ? "email" : "username";
-    const user = await em.findOne(User, {
-      [searchingField]: usernameOrEmail,
+    const user = await User.findOne({
+      where: {
+        [searchingField]: usernameOrEmail,
+      },
     });
 
     if (!user) {
@@ -133,7 +133,7 @@ export class UserResolver {
       };
     }
 
-    const isValid = await argon2.verify(user?.password, password);
+    const isValid = await argon2.verify(user.password, password);
 
     if (!isValid) {
       return {
@@ -152,7 +152,9 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
-  async logout(@Ctx() { req, res }: MyContext) {
+  async logout(
+    @Ctx() { req, res }: MyContext //
+  ) {
     return new Promise((resolve) => {
       res.clearCookie(COOKIE_NAME);
 
@@ -170,10 +172,10 @@ export class UserResolver {
 
   @Mutation(() => Boolean)
   async forgotPassword(
-    @Ctx() { em, redis }: MyContext, //
+    @Ctx() { redis }: MyContext, //
     @Arg("email") email: string
   ) {
-    const user = await em.findOne(User, { email });
+    const user = await User.findOne({ where: { email } });
 
     if (!user) {
       return false;
@@ -197,7 +199,7 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async changePassword(
-    @Ctx() { em, redis, req }: MyContext,
+    @Ctx() { redis, req }: MyContext,
     @Arg("token") token: string,
     @Arg("password") password: string
   ): Promise<UserResponse> {
@@ -226,7 +228,8 @@ export class UserResolver {
       };
     }
 
-    const user = await em.findOne(User, { id: parseInt(userId) });
+    const userIdNum = parseInt(userId);
+    const user = await User.findOne(userIdNum);
 
     if (!user) {
       return {
@@ -239,8 +242,8 @@ export class UserResolver {
       };
     }
 
-    user.password = await argon2.hash(password);
-    await em.persistAndFlush(user);
+    const hashedPassword = await argon2.hash(password);
+    await User.update({ id: userIdNum }, { password: hashedPassword });
     await redis.del(key);
 
     req.session.userId = user.id;
