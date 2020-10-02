@@ -12,10 +12,6 @@ import { HelloResolver, PostResolver, UserResolver } from "./resolvers";
 import typeormConfig from "./typeorm.config";
 import { MyContext } from "./types";
 
-/**
- * @todo: configure prettier & prettier-plugin-organize-imports
- */
-
 async function main() {
   const app = express();
 
