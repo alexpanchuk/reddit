@@ -1,4 +1,4 @@
 export const delay = async (ms: number) =>
-  new Promise((res, rej) => {
+  new Promise((res) => {
     setTimeout(res, ms);
   });
