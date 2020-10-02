@@ -1,4 +1,4 @@
-import { Box, Link, Flex, Button } from "@chakra-ui/core";
+import { Box, Button, Flex, Link } from "@chakra-ui/core";
 import NextLink from "next/link";
 
 interface Props {

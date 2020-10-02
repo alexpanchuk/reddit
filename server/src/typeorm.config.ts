@@ -1,5 +1,5 @@
-import { Post, User } from "./entities";
 import { createConnection } from "typeorm";
+import { Post, User } from "./entities";
 
 export default {
   type: "postgres",
