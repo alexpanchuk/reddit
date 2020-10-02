@@ -1,25 +1,47 @@
-import { Arg, Mutation, Query, Resolver } from "type-graphql";
+import {
+  Arg,
+  Ctx,
+  Field,
+  InputType,
+  Mutation,
+  Query,
+  Resolver,
+  UseMiddleware,
+} from "type-graphql";
 import { Post } from "./../entities";
+import { isAuth } from "./../middleware";
+import { MyContext } from "./../types";
+
+@InputType()
+class PostInput {
+  @Field()
+  title: string;
+
+  @Field()
+  text: string;
+}
 
 @Resolver()
 export class PostResolver {
   @Query(() => [Post])
-  async posts() {
+  posts() {
     return Post.find();
   }
 
   @Query(() => Post, { nullable: true })
-  async post(
+  post(
     @Arg("id") id: number //
   ) {
     return Post.findOne(id);
   }
 
   @Mutation(() => Post)
-  async createPost(
-    @Arg("title") title: string //
-  ) {
-    return Post.create({ title }).save();
+  @UseMiddleware(isAuth)
+  createPost(@Ctx() { req }: MyContext, @Arg("data") data: PostInput) {
+    return Post.create({
+      ...data,
+      creatorId: req.session.userId,
+    }).save();
   }
 
   @Mutation(() => Post, { nullable: true })
