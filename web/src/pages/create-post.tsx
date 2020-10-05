@@ -25,9 +25,11 @@ const CreatePost: NextPage = () => {
   const [, executeCreatePost] = useCreatePostMutation();
 
   async function onSubmit({ ...data }: PostInput) {
-    await executeCreatePost({ data });
+    const { error } = await executeCreatePost({ data });
 
-    router.push("/");
+    if (!error) {
+      router.push("/");
+    }
   }
 
   return (
