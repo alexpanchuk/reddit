@@ -13,9 +13,11 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { Wrapper } from "../components";
 import { PostInput, useCreatePostMutation } from "../generated/graphql";
-import { createUrqlClient } from "../utils";
+import { createUrqlClient, useRedirectUnauthToLogin } from "../utils";
 
 const CreatePost: NextPage = () => {
+  useRedirectUnauthToLogin();
+
   const { handleSubmit, errors, register, formState } = useForm<PostInput>({
     mode: "onSubmit",
     reValidateMode: "onChange",

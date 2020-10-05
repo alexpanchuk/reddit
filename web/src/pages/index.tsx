@@ -1,5 +1,7 @@
-import { Box } from "@chakra-ui/core";
+import { Box, Link } from "@chakra-ui/core";
 import { withUrqlClient } from "next-urql";
+import NextLink from "next/link";
+import React from "react";
 import { usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils";
 
@@ -8,6 +10,12 @@ const Index = () => {
 
   return (
     <Box p={4}>
+      <Box mb={4} fontWeight="bold" color="#718096">
+        <NextLink href="/create-post">
+          <Link>Create post</Link>
+        </NextLink>
+      </Box>
+
       {!posts ? (
         <div>loading...</div>
       ) : (
