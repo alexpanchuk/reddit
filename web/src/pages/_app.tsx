@@ -1,10 +1,11 @@
 import { ColorModeProvider, CSSReset, ThemeProvider } from "@chakra-ui/core";
+import { withUrqlClient } from "next-urql";
 import { AppProps } from "next/app";
 import React from "react";
 import { NavBar } from "../components";
 import { useLogoutMutation, useMeQuery } from "../generated/graphql";
 import theme from "../theme";
-import { isServer } from "../utils";
+import { createUrqlClient, isServer } from "../utils";
 
 /**
  * @todo Move cheking auth to context
@@ -32,4 +33,4 @@ function MyApp({ Component, pageProps }: AppProps) {
   );
 }
 
-export default MyApp;
+export default withUrqlClient(createUrqlClient)(MyApp);
