@@ -10,18 +10,14 @@ import { withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { Wrapper } from "../components/Wrapper";
-import {
-  RegisterMutationVariables,
-  useRegisterMutation,
-} from "../generated/graphql";
+import { RegisterInput, useRegisterMutation } from "../generated/graphql";
 import { createUrqlClient } from "../utils";
 
 /**
- * @todo
- * - Make components Form and Input to incapsulate trivial form logic
+ * @todo Make components Form and Input to incapsulate trivial form logic (https://react-hook-form.com/advanced-usage#SmartFormComponent)
  */
 
-type FormInput = RegisterMutationVariables["data"] & {
+type FormInput = RegisterInput & {
   confirm: string;
 };
 
