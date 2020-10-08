@@ -17,9 +17,9 @@ import { LoginMutationVariables, useLoginMutation } from "../generated/graphql";
 import { createUrqlClient } from "../utils";
 
 /**
- * @todo
- * - Make components Form and Input to incapsulate trivial form logic
- * - Make Link component = next/link + chakra ui Link
+ * @todo: Make components Form and Input to incapsulate trivial form logic
+ * @todo: Make Link component = next/link + chakra ui Link
+ * @findout: Is it good to realization of redirect after login (look onSubmit)?
  */
 
 const Login: NextPage = () => {
@@ -49,7 +49,11 @@ const Login: NextPage = () => {
         })
       );
     } else if (user) {
-      router.push("/");
+      if (typeof router.query.next === "string") {
+        router.push(router.query.next);
+      } else {
+        router.push("/");
+      }
     }
   }
 
