@@ -22,7 +22,7 @@ type FormInput = {
   confirm: string;
 };
 
-const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
+const ChangePassword: NextPage = () => {
   const {
     handleSubmit,
     errors,
@@ -36,10 +36,14 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
   });
 
   const router = useRouter();
+  const { token } = router.query;
   const [, executeChangePassword] = useChangePasswordMutation();
 
   async function onSubmit({ password }: FormInput) {
-    const response = await executeChangePassword({ token, password });
+    const response = await executeChangePassword({
+      token: token as string,
+      password,
+    });
 
     const errors = response.data?.changePassword.errors;
     const user = response.data?.changePassword.user;
@@ -130,9 +134,5 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
     </Wrapper>
   );
 };
-
-ChangePassword.getInitialProps = ({ query: { token } }) => ({
-  token: token as string,
-});
 
 export default withUrqlClient(createUrqlClient)(ChangePassword);
