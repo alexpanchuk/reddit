@@ -3,6 +3,7 @@ import {
   Ctx,
   Field,
   InputType,
+  Int,
   Mutation,
   Query,
   Resolver,
@@ -24,8 +25,17 @@ class PostInput {
 @Resolver()
 export class PostResolver {
   @Query(() => [Post])
-  posts() {
-    return Post.find();
+  async posts(
+    @Arg("limit", () => Int, { nullable: true }) limit?: number,
+    @Arg("cursor", () => Date, { nullable: true }) cursor?: String
+  ) {
+    const realLimit = Math.max(0, Math.min(50, limit || 50));
+
+    return Post.createQueryBuilder()
+      .where(cursor ? '"createdAt" > :cursor' : "", { cursor })
+      .orderBy('"createdAt"', "DESC")
+      .take(realLimit)
+      .getMany();
   }
 
   @Query(() => Post, { nullable: true })
@@ -37,7 +47,10 @@ export class PostResolver {
 
   @Mutation(() => Post)
   @UseMiddleware(isAuth)
-  createPost(@Ctx() { req }: MyContext, @Arg("data") data: PostInput) {
+  createPost(
+    @Ctx() { req }: MyContext, //
+    @Arg("data") data: PostInput
+  ) {
     return Post.create({
       ...data,
       creatorId: req.session.userId,
@@ -47,12 +60,12 @@ export class PostResolver {
   @Mutation(() => Post, { nullable: true })
   async updatePost(
     @Arg("id") id: number,
-    @Arg("title", () => String, { nullable: true }) title: string
+    @Arg("title", () => String, { nullable: true }) title?: string
   ) {
     const post = await Post.findOne(id);
 
     if (!post) return null;
-    if (typeof title !== "undefined") {
+    if (title) {
       await Post.update({ id }, { title });
     }
 
