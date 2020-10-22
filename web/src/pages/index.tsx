@@ -1,31 +1,47 @@
-import { Box, Link } from "@chakra-ui/core";
+import { Box, Button, Flex, Heading, Link, Stack } from "@chakra-ui/core";
 import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
 import React from "react";
+import { PostItem, Wrapper } from "../components";
 import { usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils";
 
 const Index = () => {
-  const [{ data: posts }] = usePostsQuery({
+  const [{ data: posts, fetching }] = usePostsQuery({
     variables: {
       limit: 5,
     },
   });
 
-  return (
-    <Box p={4}>
-      <Box mb={4} fontWeight="bold" color="#718096">
-        <NextLink href="/create-post">
-          <Link>Create post</Link>
-        </NextLink>
-      </Box>
+  const isLoadingFirstTime = !posts && fetching;
+  const isLoadingMore = posts && fetching;
 
-      {!posts ? (
+  return (
+    <Wrapper>
+      <Flex justify="space-between" align="center" mb={4}>
+        <Heading>LiReddit</Heading>
+        <Box fontWeight="bold" color="#718096">
+          <NextLink href="/create-post">
+            <Link>Create post</Link>
+          </NextLink>
+        </Box>
+      </Flex>
+
+      {isLoadingFirstTime ? (
         <div>loading...</div>
-      ) : (
-        posts.posts.map(({ title, id }) => <div key={id}>{title}</div>)
-      )}
-    </Box>
+      ) : posts ? (
+        <>
+          <Stack spacing={8}>
+            {posts.posts.map(({ id, title, shortText }) => (
+              <PostItem id={id} title={title} shortText={shortText} />
+            ))}
+          </Stack>
+          <Flex justify="center" my={4}>
+            <Button isLoading={isLoadingMore}>Load more</Button>
+          </Flex>
+        </>
+      ) : null}
+    </Wrapper>
   );
 };
 

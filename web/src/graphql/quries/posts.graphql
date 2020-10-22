@@ -4,5 +4,6 @@ query Posts($limit: Int, $cursor: DateTime) {
     createdAt
     updatedAt
     title
+    shortText
   }
 }
