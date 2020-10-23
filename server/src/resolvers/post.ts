@@ -39,7 +39,7 @@ export class PostResolver {
     const realLimit = Math.max(0, Math.min(50, limit || 50));
 
     return Post.createQueryBuilder()
-      .where(cursor ? '"createdAt" > :cursor' : "", { cursor })
+      .where(cursor ? '"createdAt" < :cursor' : "", { cursor })
       .orderBy('"createdAt"', "DESC")
       .take(realLimit)
       .getMany();
